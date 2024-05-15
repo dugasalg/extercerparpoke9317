@@ -1,11 +1,20 @@
 <template>
-  <button class="image-button">
+  <button
+      v-on:click="eventoClick"
+      class="image-button"
+  >
     <img :src="imageSrc" :alt="altText" />
   </button>
 </template>
 
 <script>
 export default {
+  methods: {
+    eventoClick() {
+      console.log("eventoClick");
+      this.$emit('buttonClick');
+    }
+  },
   props: {
     imageSrc: {
       type: String,
