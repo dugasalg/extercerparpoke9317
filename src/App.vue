@@ -1,37 +1,37 @@
 <template>
   <div id="app">
     <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg" alt="Pokémon" class="logo" style="width: 600px; height: auto;">
-    <h2 v-if="!juegoIniciado">¿Eres el mejor maestro pokemon del mundo?</h2>
-    <h3 v-if="!juegoIniciado">Memoriza la mayor cantidad de Pokemons y demuestralo!!</h3>
+    <h2 v-if="!juegoIniciado" id="pregunta">¿Eres el mejor maestro pokemon del mundo?</h2>
+    <h3 v-if="!juegoIniciado" id="instruc">Memoriza la mayor cantidad de Pokemons y demuestralo!!</h3>
 
-    <div  v-if="!juegoFinalizado">
-      <h1 v-if="!juegoIniciado">Equipo elegido para esta ronda:</h1>
+    <div v-if="!juegoFinalizado">
+      <h1 v-if="!juegoIniciado" id="equipo">Equipo elegido para esta ronda:</h1>
       <h1 v-else>Instrucciones:</h1>
     </div>
 
-    <p v-if="juegoIniciado && !juegoFinalizado">Para enviar la secuencia de Pokemons da click en el Pokemon deseado, una vez que termines tu secuencia enviala dando click en la Pokebola</p>
-    <p v-if="juegoIniciado && !juegoFinalizado">Si te equivocas no pasa nada, solo da click en el pokemon que quieras remover y este será eliminado de la secuencia</p>
+    <p v-if="juegoIniciado && !juegoFinalizado" id="secuencia">Para enviar la secuencia de Pokemons da click en el Pokemon deseado, una vez que termines tu secuencia enviala dando click en la Pokebola</p>
+    <p v-if="juegoIniciado && !juegoFinalizado" id="solosi">Si te equivocas no pasa nada, solo da click en el pokemon que quieras remover y este será eliminado de la secuencia</p>
 
-
-    <div  v-if="!juegoFinalizado">
-      <div v-if="equipoPokemon.length===0">
+    <div v-if="!juegoFinalizado">
+      <div v-if="equipoPokemon.length === 0">
         <h4>Cargando equipo Pokemon...</h4>
       </div>
       <div class="button-container" v-else>
         <ImageButton
-            v-for="(objectInfo) in equipoPokemon"
-            :key="objectInfo.identificador + 'IT'"
-            @buttonClick="agregarPokemon(objectInfo)"
-            :imageSrc="objectInfo.imagenUrl"
+          v-for="(objectInfo, index) in equipoPokemon"
+          :key="objectInfo.identificador + 'IT'"
+          @buttonClick="agregarPokemon(objectInfo)"
+          :imageSrc="objectInfo.imagenUrl"
+          :data-cy="'pokemon-' + index"
+          class="pokemon-image"
         />
       </div>
     </div>
 
-
     <br v-if="!juegoIniciado">
     <br v-if="!juegoIniciado">
-    <button class="start-button"
-            v-if="equipoPokemon.length!==0 && !juegoIniciado"
+    <button id="botonJuego" class="start-button"
+            v-if="equipoPokemon.length !== 0 && !juegoIniciado"
             v-on:click="iniciarJuego"
     ></button>
 
@@ -41,18 +41,24 @@
         <img v-for="(objectInfo, index) in secuenciaAMemorizar"
              :key="objectInfo.identificador + 'SM' + index"
              :src="objectInfo.imagenUrl"
+             
+             :data-cy="'secuencia-maquina-' + index"
              style="width: 100px; height: auto;"
         />
       </div>
 
-      <div v-if="!juegoFinalizado">
+      <div v-if="!juegoFinalizado" class="secuencia-a-enviar">
         <h1>Secuencia a enviar:</h1>
-        <img v-for="(objectInfo, index) in secuenciaAMostrar"
-             v-on:click="removerPokemon(index)"
-             :key="index"
-             :src="objectInfo.imagenUrl"
-             style="width: 100px; height: auto;"
-        />
+        <div class="secuencia-container">
+          <img v-for="(objectInfo, index) in secuenciaAMostrar"
+               v-on:click="removerPokemon(index)"
+               :key="index"
+               :src="objectInfo.imagenUrl"
+               
+               class="pokemon-image ImagenesPokemon"
+               style="width: 100px; height: auto;"
+          />
+        </div>
         <br>
         <button class="play-button"
                 v-show="secuenciaAMemorizar.length === secuenciaActual.length"
@@ -61,21 +67,19 @@
       </div>
       <div v-else>
         <h1>GAME OVER</h1>
-        <h2>Puntaje: {{score}}</h2>
+        <h2 id="puntaje">Puntaje: {{score}}</h2>
       </div>
-
     </div>
   </div>
 </template>
 
 <script>
-
 import ImageButton from './components/ImageButton.vue';
 import axios from 'axios';
 
 export default {
   name: 'App',
-  data(){
+  data() {
     return {
       idJuego: null,
       equipoPokemon: [],
@@ -86,33 +90,43 @@ export default {
       juegoFinalizado: false,
       score: 0,
       permitirIngresarSecuencia: false
-
-    }
+    };
   },
   components: {
     ImageButton
   },
   methods: {
-    async removerPokemon(index){
+    async removerPokemon(index) {
       this.secuenciaAMostrar.splice(index, 1);
       this.secuenciaActual.splice(index, 1);
     },
-    async agregarPokemon(pokemon){
-      if ((this.secuenciaActual.length < this.secuenciaAMemorizar.length) && this.juegoIniciado && this.permitirIngresarSecuencia){
-        this.secuenciaAMostrar.push(pokemon);
-        this.secuenciaActual.push(pokemon.identificador);
-      }
-    },
-    async envioSecuencia(){
+    async agregarPokemon(pokemon) {
+    console.log('Intentando agregar Pokémon:', pokemon);
+    console.log('Estado antes de agregar:', {
+      juegoIniciado: this.juegoIniciado,
+      permitirIngresarSecuencia: this.permitirIngresarSecuencia,
+      secuenciaActualLength: this.secuenciaActual.length,
+      secuenciaAMemorizarLength: this.secuenciaAMemorizar.length
+    });
+
+    if ((this.secuenciaActual.length < this.secuenciaAMemorizar.length) && this.juegoIniciado && this.permitirIngresarSecuencia) {
+      this.secuenciaAMostrar.push(pokemon);
+      this.secuenciaActual.push(pokemon.identificador);
+      console.log('Pokémon agregado. secuenciaActual:', this.secuenciaActual);
+    } else {
+      console.log('No se pudo agregar el Pokémon. Condiciones no cumplidas.');
+    }
+  },
+    async envioSecuencia() {
       this.permitirIngresarSecuencia = false;
-      const response = await axios.post('https://pear-pig-kit.cyclic.app/enviarSecuencia', {
+      const response = await axios.post('https://poke-memo-app-9528044356ae.herokuapp.com/enviarSecuencia', {
         idJuego: this.idJuego,
         pokemons: this.secuenciaActual
       });
 
       if (response.data.resultado === 'TERMINADO') {
         this.juegoFinalizado = true;
-        this.score = response.data.score
+        this.score = response.data.score;
       } else {
         this.secuenciaAMostrar = [];
         this.secuenciaActual = [];
@@ -120,29 +134,27 @@ export default {
 
         setTimeout(() => {
           this.reemplazarSecuenciaMaquina();
-        }, 5000)
+        }, 5000);
       }
     },
-    async obtenerEquipoInicial (){
-      const response = await axios.get('https://pear-pig-kit.cyclic.app/crearJuego');
+    async obtenerEquipoInicial() {
+      const response = await axios.get('https://poke-memo-app-9528044356ae.herokuapp.com/crearJuego');
 
       this.equipoPokemon = response.data.equipoInicial;
       this.idJuego = response.data.idJuego;
     },
-    async iniciarJuego(){
+    async iniciarJuego() {
       await this.envioSecuencia();
       this.juegoIniciado = true;
     },
-    reemplazarSecuenciaMaquina(){
-      const secuenciaDito = []
+    reemplazarSecuenciaMaquina() {
+      const secuenciaDito = [];
       for (let i = 0; i < this.secuenciaAMemorizar.length; i++) {
-        secuenciaDito.push(
-            {
-              "identificador": 132,
-              "nombre": "ditto",
-              "imagenUrl": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png"
-            },
-        )
+        secuenciaDito.push({
+          identificador: 132,
+          nombre: "ditto",
+          imagenUrl: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png"
+        });
       }
 
       this.secuenciaAMemorizar = secuenciaDito;
@@ -150,12 +162,12 @@ export default {
     }
   },
   mounted() {
-
+    window.app = this; // Exponer la instancia Vue
   },
   created() {
     this.obtenerEquipoInicial();
   }
-}
+};
 </script>
 
 <style>
@@ -199,8 +211,6 @@ export default {
 .play-button:hover {
   transform: scale(1.1);
 }
-
-
 
 .start-button:hover {
   transform: scale(1.1);
