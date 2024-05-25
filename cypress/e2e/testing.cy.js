@@ -141,29 +141,21 @@ describe('Finalización del juego ', () => {
   it('La  prueba  debe  de  validar  que  al  finalizar  el  juego  aparezca  el  número  de pokemons que el jugador memorizó', () => {
     cy.intercept('POST', '**/enviarSecuencia').as('enviarSecuencia');
 
-      cy.visit('http://localhost:8080'); // Asegúrate de que la URL sea la correcta
+      cy.visit('http://localhost:8080'); 
   
-      // Verifica que el botón de iniciar juego esté presente y haz clic en él
       cy.get('#botonJuego').click();
   
-      // Espera un momento para permitir que la secuencia inicial se cargue (ajusta el tiempo según sea necesario)
       cy.wait(10000);
   
-      // Agrega un solo Pokémon a la secuencia a enviar
       cy.get('.image-button').first().click();
   
-      // Verifica que el botón de "Enviar Secuencia" sea visible y haz clic en él
       cy.get('.play-button').should('be.visible').click();
   
-      // Espera a que la solicitud POST sea enviada y responde simulando el fin del juego
       cy.wait('@enviarSecuencia').then(({ response }) => {
-        // Simula que el juego ha terminado y que el servidor responde con el puntaje
         
         
         cy.get('h1').contains('GAME OVER').should('be.visible');
         cy.get('#puntaje').should('contain.text', 'Puntaje: 0')
-        // Verifica que aparezca el puntaje en la pantalla de fin del juego
-        //cy.get('#Puntaje').contains(⁠ Puntaje: 1 ⁠).should('be.visible');
       });
       });
     });
